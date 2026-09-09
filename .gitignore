@@ -1,0 +1,30 @@
+# Compilaciones y archivos intermedios de .NET
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/artifacts/
+
+# Ejecutables, bibliotecas compiladas y símbolos de depuración
+*.exe
+*.dll
+*.pdb
+
+# Publicaciones y paquetes generados
+**/publish/
+*.nupkg
+*.snupkg
+
+# Configuración local de Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.pubxml.user
+
+# Resultados de pruebas y cobertura
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml

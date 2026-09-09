@@ -1,0 +1,4 @@
+@urlBase = http://localhost:5101
+
+GET {{urlBase}}/estado
+Accept: application/json
