@@ -1,8 +1,27 @@
+using Trabajos.Api.Errores;
+using Trabajos.Api.Repositorios;
+using Trabajos.Api.Servicios;
 using Microsoft.OpenApi;
 
 var constructor = WebApplication.CreateBuilder(args);
 
 constructor.Services.AddControllers();
+constructor.Services.AddProblemDetails();
+
+
+constructor.Services.AddScoped<IRepositorioItemsTrabajo, RepositorioItemsTrabajo>();
+constructor.Services.AddScoped<IServicioItemsTrabajo, ServicioItemsTrabajo>();
+constructor.Services.AddSingleton(TimeProvider.System);
+
+//Conexion directa a otro microservicio.
+constructor.Services.AddHttpClient<IConsultaUsuarios, ConsultaUsuarios>(cliente =>
+{
+    cliente.BaseAddress = new Uri(constructor.Configuration["ServiciosExternos:Usuarios"]
+        ?? throw new InvalidOperationException("Falta configurar la dirección del servicio de usuarios."));
+    cliente.Timeout = TimeSpan.FromSeconds(10);
+});
+
+//Swagger.
 constructor.Services.AddSwaggerGen(opciones =>
 {
     opciones.SwaggerDoc("v1", new OpenApiInfo
@@ -13,6 +32,8 @@ constructor.Services.AddSwaggerGen(opciones =>
 });
 
 var aplicacion = constructor.Build();
+
+aplicacion.UseMiddleware<ManejadorErrores>();
 
 if (aplicacion.Environment.IsDevelopment())
 {

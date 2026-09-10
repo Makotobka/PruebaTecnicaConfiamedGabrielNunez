@@ -1,4 +1,32 @@
 @urlBase = http://localhost:5102
+@id = 00000000-0000-0000-0000-000000000000
 
+### Estado
 GET {{urlBase}}/estado
-Accept: application/json
+
+### Listar
+GET {{urlBase}}/api/usuarios
+
+### Crear (crear primero el usuario para asignar un ítem)
+POST {{urlBase}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nick": "usuario_a",
+  "nombre": "Ana Pérez"
+}
+
+### Obtener (reemplazar id por el GUID devuelto al crear)
+GET {{urlBase}}/api/usuarios/{{id}}
+
+### Actualizar todos los campos editables
+PUT {{urlBase}}/api/usuarios/{{id}}
+Content-Type: application/json
+
+{
+  "nick": "usuario_a",
+  "nombre": "Ana Pérez"
+}
+
+### Eliminar definitivamente
+DELETE {{urlBase}}/api/usuarios/{{id}}

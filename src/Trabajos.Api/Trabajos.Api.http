@@ -1,4 +1,38 @@
 @urlBase = http://localhost:5101
+@id = 00000000-0000-0000-0000-000000000000
 
+### Estado
 GET {{urlBase}}/estado
-Accept: application/json
+
+### Listar
+GET {{urlBase}}/api/items-trabajo
+
+### Crear (crear primero el usuario para asignar un ítem)
+POST {{urlBase}}/api/items-trabajo
+Content-Type: application/json
+
+{
+  "titulo": "Revisar solicitud",
+  "fechaEntrega": "2026-09-12T15:00:00Z",
+  "relevancia": "Alta",
+  "estado": "Pendiente",
+  "nombreUsuarioAsignado": "usuario_a"
+}
+
+### Obtener (reemplazar id por el GUID devuelto al crear)
+GET {{urlBase}}/api/items-trabajo/{{id}}
+
+### Actualizar todos los campos editables
+PUT {{urlBase}}/api/items-trabajo/{{id}}
+Content-Type: application/json
+
+{
+  "titulo": "Revisar solicitud",
+  "fechaEntrega": "2026-09-12T15:00:00Z",
+  "relevancia": "Alta",
+  "estado": "Pendiente",
+  "nombreUsuarioAsignado": "usuario_a"
+}
+
+### Eliminar definitivamente
+DELETE {{urlBase}}/api/items-trabajo/{{id}}
