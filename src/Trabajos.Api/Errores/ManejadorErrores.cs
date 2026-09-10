@@ -4,8 +4,12 @@ using Microsoft.Data.SqlClient;
 
 namespace Trabajos.Api.Errores;
 
+/// <summary>
+/// Convierte las excepciones de la API de trabajos en respuestas HTTP uniformes.
+/// </summary>
 public class ManejadorErrores(RequestDelegate siguiente)
 {
+    /// <summary>Ejecuta la solicitud y procesa cualquier excepción no controlada.</summary>
     public async Task InvokeAsync(HttpContext contexto)
     {
         try
@@ -19,6 +23,7 @@ public class ManejadorErrores(RequestDelegate siguiente)
         }
     }
 
+    /// <summary>Determina el código HTTP y escribe el detalle seguro del error.</summary>
     private static async Task ManejarAsync(HttpContext contexto, Exception excepcion)
     {
         var (codigo, titulo) = excepcion switch

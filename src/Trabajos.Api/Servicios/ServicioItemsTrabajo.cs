@@ -4,13 +4,42 @@ using Trabajos.Api.Repositorios;
 
 namespace Trabajos.Api.Servicios;
 
+/// <summary>
+/// Aplica las reglas de validación, asignación y ordenamiento de los ítems de trabajo.
+/// </summary>
 public class ServicioItemsTrabajo(
     IRepositorioItemsTrabajo repositorio,
-    IConsultaUsuarios consultaUsuarios,
-    TimeProvider reloj) : IServicioItemsTrabajo
+    IConsultaUsuarios consultaUsuarios) : IServicioItemsTrabajo
 {
-    public Task<List<ItemTrabajo>> ListarAsync()
-        => repositorio.ListarAsync();
+    public async Task<List<ItemTrabajo>> ListarAsync()
+        => OrdenarItems(await repositorio.ListarAsync());
+
+    public async Task<List<ItemTrabajo>> ListarPendientesAsync(string nombreUsuario)
+    {
+        if (string.IsNullOrWhiteSpace(nombreUsuario))
+            throw new ValidationException("El nombre del usuario es obligatorio.");
+
+        var items = await repositorio.ListarAsync();
+        var pendientes = items.Where(item =>
+            item.Estado == "Pendiente" &&
+            item.NombreUsuarioAsignado == nombreUsuario
+        );
+
+        return OrdenarItems(pendientes);
+    }
+
+    /// <summary>
+    /// Ordena los ítems por usuario y coloca primero los pendientes de mayor relevancia
+    /// y fecha de entrega más próxima. El identificador resuelve empates de forma estable.
+    /// </summary>
+    private static List<ItemTrabajo> OrdenarItems(IEnumerable<ItemTrabajo> items)
+        => items
+            .OrderBy(item => item.NombreUsuarioAsignado?.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ThenByDescending(item => item.Estado == "Pendiente")
+            .ThenByDescending(item => item.Relevancia == "Alta")
+            .ThenBy(item => item.FechaEntrega)
+            .ThenBy(item => item.IdItem)
+            .ToList();
 
     public async Task<ItemTrabajo> ObtenerAsync(Guid id)
         => await repositorio.ObtenerAsync(id)
@@ -37,6 +66,9 @@ public class ServicioItemsTrabajo(
             throw new KeyNotFoundException();
     }
 
+    /// <summary>
+    /// Valida la solicitud y completa la asignación y las fechas administradas por el servicio.
+    /// </summary>
     private async Task AplicarSolicitudAsync(ItemTrabajo item, SolicitudItemTrabajo solicitud)
     {
         Validator.ValidateObject(solicitud, new ValidationContext(solicitud), validateAllProperties: true);
@@ -74,6 +106,10 @@ public class ServicioItemsTrabajo(
             ? item.FechaCompletado ?? DateTime.Now : null;
     }
 
+    /// <summary>
+    /// Selecciona el usuario con menor carga que cumple el límite de ítems de relevancia alta.
+    /// Para entregas próximas compara los pendientes sin considerar la relevancia del nuevo ítem.
+    /// </summary>
     private async Task<string> ObtenerUsuarioDisponible(DateTime fechaEntrega, string relevancia, string usuarioActual)
     {
         var listaTrabajo = await repositorio.ListarAsync();
@@ -95,7 +131,6 @@ public class ServicioItemsTrabajo(
                     TotalAsignados = trabajos.Count,
                     TotalPendientes = pendientes.Count,
                     PendientesAltaRelevancia = pendientes.Count(item => item.Relevancia == "Alta"),
-                    //CargaTrabajo = pendientes.Sum(item => item.Relevancia == "Alta" ? 2 : 1) //Posible idea de balanceo por pesos.
                 };
             });
 
@@ -111,8 +146,12 @@ public class ServicioItemsTrabajo(
 
             if (relevancia == "Alta")
             {
-                //Se valida la condicion de saturacion con 3 pendientes de alta relevancia
-                var trabajadorMasLigero = cargas.Where(x => x.PendientesAltaRelevancia < 3).OrderBy(x => x.PendientesAltaRelevancia).FirstOrDefault();
+                // Tres ítems altos todavía permiten una asignación; la saturación comienza al superar tres.
+                var trabajadorMasLigero = cargas
+                    .Where(x => x.PendientesAltaRelevancia <= 3)
+                    .OrderBy(x => x.TotalPendientes)
+                    .ThenBy(x => x.Nombre)
+                    .FirstOrDefault();
                 return trabajadorMasLigero?.Nombre ?? throw new ValidationException("Todos los usuarios estan saturados");
             }
             return usuarioActual;

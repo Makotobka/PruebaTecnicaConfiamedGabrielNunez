@@ -4,10 +4,14 @@ using Usuarios.Api.Modelos;
 
 namespace Usuarios.Api.Repositorios;
 
+/// <summary>
+/// Implementa el acceso parametrizado a la tabla de usuarios en SQL Server.
+/// </summary>
 public class RepositorioUsuarios : IRepositorioUsuarios
 {
     private readonly string cadenaConexion;
 
+    /// <summary>Inicializa el repositorio con la cadena de conexión configurada.</summary>
     public RepositorioUsuarios(IConfiguration configuracion)
     {
         cadenaConexion = configuracion.GetConnectionString("BaseDatos")
@@ -76,6 +80,7 @@ public class RepositorioUsuarios : IRepositorioUsuarios
         return await comando.ExecuteScalarAsync() is not null;
     }
 
+    /// <summary>Abre una conexión nueva para la operación en curso.</summary>
     private async Task<SqlConnection> AbrirConexionAsync()
     {
         var conexion = new SqlConnection(cadenaConexion);
@@ -91,12 +96,14 @@ public class RepositorioUsuarios : IRepositorioUsuarios
         }
     }
 
+    /// <summary>Agrega al comando los parámetros editables del usuario.</summary>
     private static void AgregarParametros(SqlCommand comando, Usuario entidad)
     {
         comando.Parameters.Add("@Nick", SqlDbType.NVarChar, 100).Value = entidad.Nick;
         comando.Parameters.Add("@Nombre", SqlDbType.NVarChar, 200).Value = entidad.Nombre;
     }
 
+    /// <summary>Convierte la fila actual del lector en un usuario.</summary>
     private static Usuario Leer(SqlDataReader lector)
     {
         return new Usuario

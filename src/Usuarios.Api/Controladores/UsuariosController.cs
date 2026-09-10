@@ -6,14 +6,19 @@ namespace Usuarios.Api.Controladores;
 
 [ApiController]
 [Route("api/usuarios")]
+/// <summary>
+/// Expone las operaciones HTTP para administrar y consultar usuarios.
+/// </summary>
 public class UsuariosController(IServicioUsuarios servicio) : ControllerBase
 {
+    /// <summary>Obtiene todos los usuarios registrados.</summary>
     [HttpGet]
     public async Task<ActionResult<List<Usuario>>> Listar()
     {
         return Ok(await servicio.ListarAsync());
     }
 
+    /// <summary>Comprueba la existencia de un usuario por nick o nombre.</summary>
     [HttpGet("existe")]
     public async Task<ActionResult<bool>> ExisteNick([FromQuery] string? nick, [FromQuery] string? nombre)
     {
@@ -24,12 +29,14 @@ public class UsuariosController(IServicioUsuarios servicio) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Obtiene un usuario por su identificador.</summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Usuario>> Obtener(Guid id)
     {
         return Ok(await servicio.ObtenerAsync(id));
     }
 
+    /// <summary>Crea un usuario.</summary>
     [HttpPost]
     public async Task<ActionResult<Usuario>> Crear(SolicitudUsuario solicitud)
     {
@@ -37,6 +44,7 @@ public class UsuariosController(IServicioUsuarios servicio) : ControllerBase
         return CreatedAtAction(nameof(Obtener), new { id = entidad.Id }, entidad);
     }
 
+    /// <summary>Actualiza un usuario existente.</summary>
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Actualizar(Guid id, SolicitudUsuario solicitud)
     {
@@ -44,6 +52,7 @@ public class UsuariosController(IServicioUsuarios servicio) : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Elimina definitivamente un usuario.</summary>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Eliminar(Guid id)
     {

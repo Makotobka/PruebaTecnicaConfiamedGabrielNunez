@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Usuarios.Api.Modelos;
 
+/// <summary>
+/// Contiene los datos editables enviados para crear o actualizar un usuario.
+/// </summary>
 public class SolicitudUsuario
 {
     [Required(ErrorMessage = "El nick es obligatorio.")]

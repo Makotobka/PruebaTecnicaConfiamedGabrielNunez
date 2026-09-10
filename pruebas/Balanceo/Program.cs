@@ -19,7 +19,7 @@ List<ItemTrabajo> Trabajos(string usuario, int pendientes, int altas = 0, int co
 async Task Verificar(string caso, List<ItemTrabajo> trabajos, string[] usuarios, DateTime fecha, string actual, string? esperado)
 {
     var repositorio = new RepositorioPrueba(trabajos);
-    var servicio = new ServicioItemsTrabajo(repositorio, new UsuariosPrueba(usuarios), new RelojPrueba(ahora));
+    var servicio = new ServicioItemsTrabajo(repositorio, new UsuariosPrueba(usuarios));
     try
     {
         var resultado = await servicio.CrearAsync(new SolicitudItemTrabajo
@@ -30,12 +30,26 @@ async Task Verificar(string caso, List<ItemTrabajo> trabajos, string[] usuarios,
         if (esperado is null || resultado.NombreUsuarioAsignado != esperado)
             throw new Exception($"{caso}: se esperaba {esperado ?? "rechazo"}, se obtuvo {resultado.NombreUsuarioAsignado}.");
     }
-    catch (ValidationException error) when (esperado is null && error.Message.Contains("No hay usuarios disponibles"))
+    catch (ValidationException error) when (esperado is null && (error.Message.Contains("No hay usuarios disponibles") || error.Message.Contains("Todos los usuarios estan saturados")))
     {
         if (repositorio.Creaciones != 0) throw new Exception("Se guardó un ítem sin usuario elegible.");
     }
     Console.WriteLine($"Correcto: {caso}");
     pruebas++;
+}
+
+// Ejecutar solo los casos del criterio de carga para relevancia alta no urgente.
+if (args.Contains("--altas-no-urgentes"))
+{
+    var fechaNoUrgente = DateTime.Now.AddDays(10);
+    await Verificar("Menos pendientes totales aunque tenga mas altas", [..Trabajos("A", 8), ..Trabajos("B", 2, 2)], ["A", "B"], fechaNoUrgente, "A", "B");
+    await Verificar("Excluye saturado aunque tenga menos pendientes", [..Trabajos("A", 4, 4), ..Trabajos("B", 5, 1)], ["A", "B"], fechaNoUrgente, "A", "B");
+    await Verificar("Exactamente tres altas sigue siendo elegible", [..Trabajos("A", 3, 3), ..Trabajos("B", 4)], ["A", "B"], fechaNoUrgente, "B", "A");
+    await Verificar("Ignora completados al medir carga", [..Trabajos("A", 1, 1, 10), ..Trabajos("B", 2)], ["A", "B"], fechaNoUrgente, "B", "A");
+    await Verificar("Incluye usuario sin pendientes", Trabajos("A", 1), ["A", "B"], fechaNoUrgente, "A", "B");
+    await Verificar("Todos saturados no guarda", [..Trabajos("A", 4, 4), ..Trabajos("B", 4, 4)], ["A", "B"], fechaNoUrgente, "A", null);
+    Console.WriteLine($"{pruebas} escenarios de relevancia alta no urgente verificados.");
+    return;
 }
 
 await Verificar("Ejemplo A/B devuelve B", [..Trabajos("A", 3, 2), ..Trabajos("B", 1)], ["A", "B"], ahora.AddDays(2), "A", "B");
@@ -53,12 +67,6 @@ await Verificar("No asigna a usuarios eliminados", Trabajos("A", 1), ["A"], ahor
 await Verificar("Todos saturados rechaza sin guardar", [..Trabajos("A", 4, 4), ..Trabajos("B", 4, 4)], ["A", "B"], ahora.AddDays(2), "A", null);
 await Verificar("Sin usuarios rechaza sin guardar", [], [], ahora.AddDays(2), "A", null);
 Console.WriteLine($"{pruebas} escenarios de balanceo verificados.");
-
-class RelojPrueba(DateTime ahora) : TimeProvider
-{
-    public override DateTimeOffset GetUtcNow() => new(ahora);
-    public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
-}
 
 class UsuariosPrueba(string[] nombres) : IConsultaUsuarios
 {

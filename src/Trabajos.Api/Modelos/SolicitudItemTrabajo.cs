@@ -1,5 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
+/// <summary>
+/// Contiene los datos editables enviados para crear o actualizar un ítem de trabajo.
+/// </summary>
 public class SolicitudItemTrabajo
 {
     [Required(ErrorMessage = "El título es obligatorio.")]

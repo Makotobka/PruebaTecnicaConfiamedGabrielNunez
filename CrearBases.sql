@@ -1,8 +1,8 @@
 CREATE TABLE dbo.Usuarios
 (
     Id UNIQUEIDENTIFIER NOT NULL CONSTRAINT PK_Usuarios PRIMARY KEY DEFAULT NEWSEQUENTIALID(),
-    Nick NVARCHAR(50) NOT NULL,
-    Nombre NVARCHAR(250) NOT NULL
+    Nick NVARCHAR(100) NOT NULL,
+    Nombre NVARCHAR(200) NOT NULL
 );
 GO
 
@@ -21,8 +21,7 @@ CREATE TABLE dbo.ItemsTrabajo
     FechaCreacion DATETIME2(0) NOT NULL,
     FechaEntrega DATETIME2(0) NOT NULL,
     Relevancia NVARCHAR(4) NOT NULL,
-    EstadoOrden NVARCHAR(10) NOT NULL,
-	Estado BIT NOT NULL DEFAULT (1)
+    Estado NVARCHAR(10) NOT NULL,
     NombreUsuarioAsignado NVARCHAR(100) NULL,
     FechaAsignacion DATETIME2(0) NULL,
     FechaCompletado DATETIME2(0) NULL

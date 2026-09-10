@@ -4,6 +4,9 @@ using Usuarios.Api.Repositorios;
 
 namespace Usuarios.Api.Servicios;
 
+/// <summary>
+/// Aplica las validaciones de negocio y coordina la persistencia de usuarios.
+/// </summary>
 public class ServicioUsuarios(IRepositorioUsuarios repositorio) : IServicioUsuarios
 {
     public Task<List<Usuario>> ListarAsync()
@@ -49,6 +52,7 @@ public class ServicioUsuarios(IRepositorioUsuarios repositorio) : IServicioUsuar
 
     
 
+    /// <summary>Valida y normaliza los datos recibidos antes de guardarlos.</summary>
     private static Usuario Preparar(SolicitudUsuario solicitud)
     {
         Validator.ValidateObject(solicitud, new ValidationContext(solicitud), validateAllProperties: true);

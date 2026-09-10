@@ -11,8 +11,6 @@ constructor.Services.AddProblemDetails();
 
 constructor.Services.AddScoped<IRepositorioItemsTrabajo, RepositorioItemsTrabajo>();
 constructor.Services.AddScoped<IServicioItemsTrabajo, ServicioItemsTrabajo>();
-constructor.Services.AddSingleton(TimeProvider.System);
-
 //Conexion directa a otro microservicio.
 constructor.Services.AddHttpClient<IConsultaUsuarios, ConsultaUsuarios>(cliente =>
 {

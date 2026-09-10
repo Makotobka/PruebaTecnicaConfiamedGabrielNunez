@@ -1,5 +1,8 @@
 namespace Trabajos.Api.Modelos;
 
+/// <summary>
+/// Representa un ítem de trabajo almacenado y su información de asignación.
+/// </summary>
 public class ItemTrabajo
 {
     public Guid IdItem { get; set; }

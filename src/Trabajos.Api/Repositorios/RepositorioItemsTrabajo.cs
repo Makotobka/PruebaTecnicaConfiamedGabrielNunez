@@ -4,10 +4,14 @@ using Trabajos.Api.Modelos;
 
 namespace Trabajos.Api.Repositorios;
 
+/// <summary>
+/// Implementa el acceso parametrizado a la tabla de ítems de trabajo en SQL Server.
+/// </summary>
 public class RepositorioItemsTrabajo : IRepositorioItemsTrabajo
 {
     private readonly string cadenaConexion;
 
+    /// <summary>Inicializa el repositorio con la cadena de conexión configurada.</summary>
     public RepositorioItemsTrabajo(IConfiguration configuracion)
     {
         cadenaConexion = configuracion.GetConnectionString("BaseDatos")
@@ -60,6 +64,7 @@ public class RepositorioItemsTrabajo : IRepositorioItemsTrabajo
         return await comando.ExecuteNonQueryAsync() > 0;
     }
 
+    /// <summary>Abre una conexión nueva para la operación en curso.</summary>
     private async Task<SqlConnection> AbrirConexionAsync()
     {
         var conexion = new SqlConnection(cadenaConexion);
@@ -75,6 +80,7 @@ public class RepositorioItemsTrabajo : IRepositorioItemsTrabajo
         }
     }
 
+    /// <summary>Agrega al comando los parámetros editables y de seguimiento del ítem.</summary>
     private static void AgregarParametros(SqlCommand comando, ItemTrabajo entidad)
     {
         comando.Parameters.Add("@Titulo", SqlDbType.NVarChar, 200).Value = entidad.Titulo;
@@ -87,6 +93,7 @@ public class RepositorioItemsTrabajo : IRepositorioItemsTrabajo
         comando.Parameters.Add("@FechaCompletado", SqlDbType.DateTime2).Value = (object?)entidad.FechaCompletado ?? DBNull.Value;
     }
 
+    /// <summary>Convierte la fila actual del lector en un ítem de trabajo.</summary>
     private static ItemTrabajo Leer(SqlDataReader lector)
     {
         return new ItemTrabajo
